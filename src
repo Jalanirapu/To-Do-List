@@ -1,0 +1,144 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog,filedialog
+import os
+
+TASKS_FILE = "tasks.txt"
+
+def add_task():
+    task = task_entry.get()
+    if task and task.strip() and task != "Enter task here...":
+        task_listbox.insert(tk.END, task.strip())
+        task_entry.delete(0, tk.END)
+        if task_entry.get() == "":
+            task_entry.insert(0, "Enter task here...")
+            task_entry.config(fg='grey')
+    elif task == "Enter task here...":
+        messagebox.showwarning("Warning", "Please enter a task.")
+    else:
+        messagebox.showwarning("Warning", "Task cannot be empty.")
+
+def remove_task():
+    try:
+        selected_task_index = task_listbox.curselection()[0]
+        task_listbox.delete(selected_task_index)
+    except IndexError:
+        messagebox.showwarning("Warning", "Please select a task to remove.")
+
+def save_tasks():
+    tasks = task_listbox.get(0, tk.END)
+    try:
+        with open(TASKS_FILE, "w") as f:
+            for task in tasks:
+                f.write(task + "\n")
+        messagebox.showinfo("Info", "Tasks saved successfully!")
+    except Exception as e:
+        messagebox.showerror("Error", f"Failed to save tasks: {e}")
+
+def load_tasks():
+    if os.path.exists(TASKS_FILE):
+        try:
+            with open(TASKS_FILE, "r") as f:
+                tasks = f.readlines()
+            task_listbox.delete(0, tk.END)
+            for task in tasks:
+                if task.strip():
+                    task_listbox.insert(tk.END, task.strip())
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to load tasks: {e}")
+
+def on_entry_click(event):
+    if task_entry.get() == "Enter task here...":
+        task_entry.delete(0, tk.END)
+        task_entry.insert(0,'')
+        task_entry.config(fg='black')
+
+def on_focusout(event):
+    """Function that gets called when focus is moved out of entry"""
+    if task_entry.get() == '':
+        task_entry.insert(0, 'Enter task here...')
+        task_entry.config(fg='grey')
+
+root = tk.Tk()
+root.title("To Do List")
+root.geometry("400x550")
+root.configure(bg="#f0f0f0")
+
+list_frame = tk.Frame(root, bg="#f0f0f0")
+list_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+
+scrollbar = tk.Scrollbar(list_frame)
+scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+task_listbox = tk.Listbox(
+    list_frame,
+    height=15,
+    width=50,
+    bd=0,
+    font=("Arial", 12),
+    selectbackground="#a6a6a6",
+    activestyle="none",
+    yscrollcommand=scrollbar.set,
+)
+task_listbox.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+scrollbar.config(command=task_listbox.yview)
+
+entry_fame = tk.Frame(root, bg="#f0f0f0")
+entry_fame.pack(pady=10, padx=10, fill=tk.X)
+
+task_entry = tk.Entry(
+    entry_fame,
+    width=30,
+    font=("Arial", 12),
+    bd=1,
+    relief=tk.SOLID
+)
+task_entry.pack(side=tk.LEFT, padx=(0, 5), ipady=5, fill=tk.X, expand=True)
+task_entry.insert(0, "Enter task here...")
+task_entry.config(fg='grey')
+task_entry.bind("<FocusIn>", on_entry_click)
+task_entry.bind("<FocusOut>", on_focusout)
+
+add_button = tk.Button(
+    entry_fame,
+    text="Add Task",
+    width=10,
+    command=add_task,
+    font=("Arial", 10, "bold"),
+    bg="#4CAF50",
+    fg="white",
+    bd=2,
+)
+add_button.pack(side=tk.LEFT, ipady=3)
+
+button_frame = tk.Frame(root, bg="#f0f0f0")
+button_frame.pack(pady=10, padx=10, fill=tk.X)
+
+remove_button = tk.Button(
+    button_frame,
+    text="Remove Task",
+    width=10,
+    command=remove_task,
+    font=("Arial", 10, "bold"),
+    bg="#f44336",
+    fg="white",
+    relief=tk.RAISED,
+    bd=2,
+)
+remove_button.pack(side=tk.LEFT, padx=(0,5), expand=True, fill=tk.X, ipady=3)
+
+save_button = tk.Button(
+    button_frame,
+    text="Save Tasks",
+    width=10,
+    command=save_tasks,
+    font=("Arial", 10, "bold"),
+    bg="#2196F3",
+    fg="white",
+    relief=tk.RAISED,
+    bd=2,
+)
+save_button.pack(side=tk.LEFT, expand=True, fill=tk.X, ipady=3)
+
+load_tasks()
+
+root.mainloop()
